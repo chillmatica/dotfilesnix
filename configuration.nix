@@ -20,10 +20,13 @@
     fish
     fastfetch
     linux-firmware
+    btop
+    cmatrix
+    asciiquarium
     vesktop
-    protonup-qt
+    protonplus
     gnome-extension-manager
-    gnome-tweaks
+    refine
     lutris
     git
     ptyxis
@@ -50,8 +53,15 @@
   ];
 
   # Direct Programs
-  programs.firefox.enable = false;
+  #programs.firefox.enable = false;
   services.flatpak.enable = true;
+  systemd.services.flatpak-repo = {
+    wantedBy = [ "multi-user.target" ];
+    path = [ pkgs.flatpak ];
+    script = ''
+      flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+    '';
+  };
   programs.steam = {
     enable = true;
     remotePlay.openFirewall = true;
@@ -65,7 +75,52 @@
     configDir = "/home/rob/.config/syncthing";
   };
   
-  ##### MISC #####
+   # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+  
+  # Enable the X11 windowing system.
+  services.xserver.enable = true;
+
+  # Enable the GNOME Desktop Environment.
+  services.displayManager.gdm.enable = true;
+  services.displayManager.gdm.wayland = true;
+  services.desktopManager.gnome.enable = true;
+  
+  # Niri Window Manager
+  programs.niri.enable = true;
+
+  # Define a user account. Don't forget to set a password with ‘passwd’.
+  users.users.rob = {
+    isNormalUser = true;
+    description = "Rob";
+    extraGroups = [ "networkmanager" "wheel" ];
+    packages = with pkgs; [
+    #  thunderbird
+    ];
+  };
+
+  # Fonts
+  fonts.packages = with pkgs; [
+    nerd-fonts.fira-code
+    nerd-fonts.droid-sans-mono
+    nerd-fonts.jetbrains-mono
+  ];
+
+  # Nvidia stuff
+  services.xserver.videoDrivers = ["nvidia"];
+  hardware.nvidia = {
+    modesetting.enable=true;
+    powerManagement.enable = false;
+    powerManagement.finegrained = false;
+    open = true;
+    nvidiaSettings = true;
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
+  };
+
+  # Hardware accelerated video
+  hardware.graphics.enable = true;
+
+ ##### MISC #####
   networking.hostName = "Rocinante"; # Define your hostname.
   networking.networkmanager.enable = true;
   time.timeZone = "America/New_York";
@@ -100,47 +155,6 @@
     # use the example session manager (no others are packaged yet so this is enabled by default,
     # no need to redefine it in your config for now)
     #media-session.enable = true;
-  };
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
-  
-  ##### MISC #####
-
-  # Enable the X11 windowing system.
-  services.xserver.enable = true;
-
-  # Enable the GNOME Desktop Environment.
-  services.displayManager.gdm.enable = true;
-  services.displayManager.gdm.wayland = true;
-  services.desktopManager.gnome.enable = true;
-  
-  # Niri Window Manager
-  programs.niri.enable = true;
-
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.rob = {
-    isNormalUser = true;
-    description = "Rob";
-    extraGroups = [ "networkmanager" "wheel" ];
-    packages = with pkgs; [
-    #  thunderbird
-    ];
-  };
-
-  # Fonts
-  fonts.packages = with pkgs; [
-    nerd-fonts.fira-code
-    nerd-fonts.droid-sans-mono
-  ];
- 
-  services.xserver.videoDrivers = ["nvidia"];
-  hardware.nvidia = {
-    modesetting.enable=true;
-    powerManagement.enable = false;
-    powerManagement.finegrained = false;
-    open = true;
-    nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
   # Automatic cleanup
